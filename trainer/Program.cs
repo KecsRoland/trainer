@@ -34,6 +34,7 @@ namespace trainer
             {
                 Console.Clear();
                 Console.WriteLine("Mozgásnapló kezelő");
+                Console.WriteLine("A nyilak segítségével navigálhat.");
                 Console.WriteLine($"1. Hozzáadás{(selectedOption == 1 ? " <---" : "")}");
                 Console.WriteLine($"2. Megtekintés{(selectedOption == 2 ? " <---" : "")}");
                 Console.WriteLine($"3. Edzéstípusra szűrés{(selectedOption == 3 ? " <---" : "")}");
@@ -94,6 +95,16 @@ namespace trainer
                             }
                             break;
                         case 5:
+                            Console.Clear();
+                            Console.SetCursorPosition(0, 0);
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Kilépés.");
+                            Thread.Sleep(1000);
+                            Console.SetCursorPosition(0, 0);
+                            Console.WriteLine("Kilépés..");
+                            Thread.Sleep(1000);
+                            Console.SetCursorPosition(0, 0);
+                            Console.WriteLine("Kilépés...");
                             Environment.Exit(0); // Kilépés a programból
                             break;
                     }
@@ -244,8 +255,7 @@ namespace trainer
                 }
                 else
                 {
-                    Console.WriteLine($"Edzéstípusra szűrt adatok ({exerciseTypeFilter}):");
-                    Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
+                    List<string> filteredEntries = new List<string>();
 
                     foreach (string line in lines)
                     {
@@ -253,6 +263,22 @@ namespace trainer
 
                         if (parts.Length == 3 && parts[1].Equals(exerciseTypeFilter, StringComparison.OrdinalIgnoreCase))
                         {
+                            filteredEntries.Add(line);
+                        }
+                    }
+
+                    if (filteredEntries.Count == 0)
+                    {
+                        Console.WriteLine($"Nincs találat a(z) '{exerciseTypeFilter}' edzéstípusra.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Edzéstípusra szűrt adatok ({exerciseTypeFilter}):");
+                        Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
+
+                        foreach (string entry in filteredEntries)
+                        {
+                            string[] parts = entry.Split('\t');
                             string date = parts[0];
                             string exerciseType = parts[1];
                             int duration = int.Parse(parts[2]);
@@ -267,7 +293,6 @@ namespace trainer
                 Console.WriteLine($"Hiba történt: {ex.Message}");
             }
         }
-
         // Statisztika megjelenítése
         static void DisplayStatistics(string filePath)
         {
@@ -311,12 +336,17 @@ namespace trainer
                     foreach (var kvp in exerciseData)
                     {
                         string exerciseType = kvp.Key;
-                        int count = kvp.Value.Count;
-                        int totalDuration = kvp.Value.Sum();
-                        int averageDuration = (int)kvp.Value.Average();
-                        int maxDuration = kvp.Value.Max();
+                        List<int> durations = kvp.Value;
 
-                        Console.WriteLine($"{exerciseType}\t\t{count}\t\t{totalDuration}\t\t{averageDuration}\t\t\t{maxDuration}");
+                        if (durations != null && durations.Count > 0)
+                        {
+                            int count = durations.Count;
+                            int totalDuration = durations.Sum();
+                            int averageDuration = (int)durations.Average();
+                            int maxDuration = durations.Max();
+
+                            Console.WriteLine($"{exerciseType}\t\t{count}\t\t{totalDuration}\t\t{averageDuration}\t\t\t{maxDuration}");
+                        }
                     }
                 }
             }
@@ -327,7 +357,7 @@ namespace trainer
         }
 
         // Dátum érvényességének ellenőrzése
-        static bool IsValidDate(string date)
+        static bool IsValidDate(string date)  
         {
             DateTime dummy;
             return DateTime.TryParse(date, out dummy);
