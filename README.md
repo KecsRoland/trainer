@@ -26,6 +26,6 @@ A mozgásnapló fájlja elérési útja: `>Ahol el szeretnéd helyezni a txt fá
 
 ## Fejlesztő
 
-Készítette: Kecskés Roland Varga Benedek
+Készítette: Kecskés Roland & Varga Benedek
 
 ---
