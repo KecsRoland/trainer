@@ -12,6 +12,20 @@ namespace trainer
             // A mozgásnapló fájl elérési útja
             string file = "C:\\Users\\MSI GS63 Stealth 8RE\\Desktop\\11\\ikt\\mentes\\mozgas.txt";
 
+            // Ellenőrizzük, hogy a fájl létezik-e, és üres-e
+            if (!File.Exists(file) || new FileInfo(file).Length == 0)
+            {
+                ShowMenu(file);
+            }
+            else
+            {
+                ShowMenu(file);
+            }
+        }
+
+        // Módosított menü megjelenítése
+        static void ShowMenu(string file)
+        {
             // A kiválasztott menüopció tárolása
             int selectedOption = 1;
 
@@ -44,19 +58,40 @@ namespace trainer
                             AddEntry(file); // Új edzés hozzáadása
                             break;
                         case 2:
-                            ViewEntries(file); // Edzésnapló megjelenítése
-                            Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
-                            Console.ReadKey();
+                            if (HasEntries(file))
+                            {
+                                ViewEntries(file); // Edzésnapló megjelenítése
+                                Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
+                                Console.ReadKey();
+                            }
+                            else
+                            {
+                                DisplayAndReturnToMainMenu(file);
+                            }
                             break;
                         case 3:
-                            FilterByExerciseType(file); // Edzéstípus alapján szűrt adatok megjelenítése
-                            Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
-                            Console.ReadKey();
+                            if (HasEntries(file))
+                            {
+                                FilterByExerciseType(file); // Edzéstípus alapján szűrt adatok megjelenítése
+                                Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
+                                Console.ReadKey();
+                            }
+                            else
+                            {
+                                DisplayAndReturnToMainMenu(file);
+                            }
                             break;
                         case 4:
-                            DisplayStatistics(file); // Statisztika megjelenítése
-                            Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
-                            Console.ReadKey();
+                            if (HasEntries(file))
+                            {
+                                DisplayStatistics(file); // Statisztika megjelenítése
+                                Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
+                                Console.ReadKey();
+                            }
+                            else
+                            {
+                                DisplayAndReturnToMainMenu(file);
+                            }
                             break;
                         case 5:
                             Environment.Exit(0); // Kilépés a programból
@@ -64,6 +99,36 @@ namespace trainer
                     }
                 }
             }
+        }
+
+        // Ellenőrzi, hogy van-e elmentett edzés
+        static bool HasEntries(string filePath)
+        {
+            try
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                return lines.Length > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Hiba történt: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Megjeleníti az üzenetet, ha nincs elmentett edzés
+        static void DisplayNoEntriesMessage()
+        {
+            Console.WriteLine("Jelenleg nincs elmentett edzés. Kérem először adjon hozzá.");
+            Console.WriteLine("\nNyomj meg egy gombot a folytatáshoz...");
+            Console.ReadKey();
+        }
+
+        // Megjeleníti az üzenetet, ha nincs elmentett edzés, majd visszatér a főmenübe
+        static void DisplayAndReturnToMainMenu(string file)
+        {
+            DisplayNoEntriesMessage();
+            ShowMenu(file);
         }
 
         // Új edzés hozzáadása a naplóhoz
@@ -119,6 +184,7 @@ namespace trainer
         }
 
         // Edzésnapló megjelenítése
+        // Edzésnapló megjelenítése
         static void ViewEntries(string filePath)
         {
             Console.Clear();
@@ -126,23 +192,30 @@ namespace trainer
             {
                 string[] lines = File.ReadAllLines(filePath);
 
-                Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
-
-                foreach (string line in lines)
+                if (lines.Length == 0)
                 {
-                    string[] parts = line.Split('\t');
+                    Console.WriteLine("Jelenleg nincs elmentett edzés. Kérem először adjon hozzá.");
+                }
+                else
+                {
+                    Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
 
-                    if (parts.Length == 3)
+                    foreach (string line in lines)
                     {
-                        string date = parts[0];
-                        string exerciseType = parts[1];
-                        int duration = int.Parse(parts[2]);
+                        string[] parts = line.Split('\t');
 
-                        Console.WriteLine($"{date}\t\t{exerciseType}\t\t{duration}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Hibás formátum a következő sorban: " + line);
+                        if (parts.Length == 3)
+                        {
+                            string date = parts[0];
+                            string exerciseType = parts[1];
+                            int duration = int.Parse(parts[2]);
+
+                            Console.WriteLine($"{date}\t\t{exerciseType}\t\t{duration}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Hibás formátum a következő sorban: " + line);
+                        }
                     }
                 }
             }
@@ -165,20 +238,27 @@ namespace trainer
             {
                 string[] lines = File.ReadAllLines(filePath);
 
-                Console.WriteLine($"Edzéstípusra szűrt adatok ({exerciseTypeFilter}):");
-                Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
-
-                foreach (string line in lines)
+                if (lines.Length == 0)
                 {
-                    string[] parts = line.Split('\t');
+                    Console.WriteLine("Jelenleg nincs elmentett edzés. Kérem először adjon hozzá.");
+                }
+                else
+                {
+                    Console.WriteLine($"Edzéstípusra szűrt adatok ({exerciseTypeFilter}):");
+                    Console.WriteLine("Dátum\t\tTípus\t\tIdőtartam (perc)");
 
-                    if (parts.Length == 3 && parts[1].Equals(exerciseTypeFilter, StringComparison.OrdinalIgnoreCase))
+                    foreach (string line in lines)
                     {
-                        string date = parts[0];
-                        string exerciseType = parts[1];
-                        int duration = int.Parse(parts[2]);
+                        string[] parts = line.Split('\t');
 
-                        Console.WriteLine($"{date}\t\t{exerciseType}\t\t{duration}");
+                        if (parts.Length == 3 && parts[1].Equals(exerciseTypeFilter, StringComparison.OrdinalIgnoreCase))
+                        {
+                            string date = parts[0];
+                            string exerciseType = parts[1];
+                            int duration = int.Parse(parts[2]);
+
+                            Console.WriteLine($"{date}\t\t{exerciseType}\t\t{duration}");
+                        }
                     }
                 }
             }
@@ -197,40 +277,47 @@ namespace trainer
             {
                 string[] lines = File.ReadAllLines(filePath);
 
-                // Edzéstípusokhoz tartozó adatok gyűjtése
-                Dictionary<string, List<int>> exerciseData = new Dictionary<string, List<int>>();
-
-                foreach (string line in lines)
+                if (lines.Length == 0)
                 {
-                    string[] parts = line.Split('\t');
-
-                    if (parts.Length == 3)
-                    {
-                        string exerciseType = parts[1];
-                        int duration = int.Parse(parts[2]);
-
-                        if (!exerciseData.ContainsKey(exerciseType))
-                        {
-                            exerciseData[exerciseType] = new List<int>();
-                        }
-
-                        exerciseData[exerciseType].Add(duration);
-                    }
+                    Console.WriteLine("Jelenleg nincs elmentett edzés. Kérem először adjon hozzá.");
                 }
-
-                // Statisztika megjelenítése
-                Console.WriteLine("Statisztika edzéstípusonként:");
-                Console.WriteLine("Edzéstípus\tEdzések száma\tÖsszideje (perc)\tÁtlagos idő (perc)\tLeghosszabb edzés (perc)");
-
-                foreach (var kvp in exerciseData)
+                else
                 {
-                    string exerciseType = kvp.Key;
-                    int count = kvp.Value.Count;
-                    int totalDuration = kvp.Value.Sum();
-                    int averageDuration = (int)kvp.Value.Average();
-                    int maxDuration = kvp.Value.Max();
+                    // Edzéstípusokhoz tartozó adatok gyűjtése
+                    Dictionary<string, List<int>> exerciseData = new Dictionary<string, List<int>>();
 
-                    Console.WriteLine($"{exerciseType}\t\t{count}\t\t{totalDuration}\t\t{averageDuration}\t\t\t{maxDuration}");
+                    foreach (string line in lines)
+                    {
+                        string[] parts = line.Split('\t');
+
+                        if (parts.Length == 3)
+                        {
+                            string exerciseType = parts[1];
+                            int duration = int.Parse(parts[2]);
+
+                            if (!exerciseData.ContainsKey(exerciseType))
+                            {
+                                exerciseData[exerciseType] = new List<int>();
+                            }
+
+                            exerciseData[exerciseType].Add(duration);
+                        }
+                    }
+
+                    // Statisztika megjelenítése
+                    Console.WriteLine("Statisztika edzéstípusonként:");
+                    Console.WriteLine("Edzéstípus\tEdzések száma\tÖsszideje (perc)\tÁtlagos idő (perc)\tLeghosszabb edzés (perc)");
+
+                    foreach (var kvp in exerciseData)
+                    {
+                        string exerciseType = kvp.Key;
+                        int count = kvp.Value.Count;
+                        int totalDuration = kvp.Value.Sum();
+                        int averageDuration = (int)kvp.Value.Average();
+                        int maxDuration = kvp.Value.Max();
+
+                        Console.WriteLine($"{exerciseType}\t\t{count}\t\t{totalDuration}\t\t{averageDuration}\t\t\t{maxDuration}");
+                    }
                 }
             }
             catch (Exception ex)
